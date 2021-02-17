@@ -9,7 +9,7 @@ public class replication {
 		int count = 0;
 		boolean flag = false;
 		
-	    ArrayList<Integer> visited = new ArrayList<Integer>();
+		HashSet<Integer> visited = new HashSet<Integer>();
 	    //create new stacks: coords, hour, size
 	    Stack<Integer> coords = new Stack<Integer>();
 	    Stack<Integer> hours = new Stack<Integer>();
@@ -41,7 +41,7 @@ public class replication {
 	        int c = currentPosition%1000;
 	        ArrayList<Integer> newPositions = new ArrayList<Integer>();
 	        //add to visited list
-	        visited.add(1000*r + c);
+	        visited.add(currentPosition);
 	        
 	        //checking borders
 	        int currR = r - size;
