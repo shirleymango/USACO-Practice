@@ -4,132 +4,165 @@ public class replication {
 
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
-		int N = in.nextInt();
-		int D = in.nextInt();
-		int count = 0;
-		boolean flag = false;
+		int n = in.nextInt();
+		int d = in.nextInt();
+		int[] dr = new int[] {-1, 1, 0, 0};
+		int[] dc = new int[] {0, 0, -1, 1};
+		boolean[][] empty = new boolean[n][n];
+		int[][] dist_rock = new int[n][n];
+		int[][] dist_source = new int[n][n];
+		Queue<Integer> starts = new LinkedList<Integer>();
+		Queue<Integer> rocks = new LinkedList<Integer>();
+		boolean[][] ans = new boolean[n][n];
 		
-		HashSet<Integer> visited = new HashSet<Integer>();
-	    //create new stacks: coords, hour, size
-	    Stack<Integer> coords = new Stack<Integer>();
-	    Stack<Integer> hours = new Stack<Integer>();
-	    Stack<Integer> sizes = new Stack<Integer>();
-	    
-	    String line = in.nextLine();
-	    String[][] farm = new String[N][N];
-	    
-	    for (int i = 0; i < N; i++) {
-	        line = in.nextLine();
-	        String[] arr = line.split("");
-	        farm[i] = arr;
-	        //find index of 'S' squares
-	        while (line.indexOf('S') >= 0) {
-	          int index = line.indexOf('S');
-	          coords.add(1000*i + index);
-	          hours.add(0);
-	          sizes.add(0);
-	          line = line.substring(0, index) + "." + line.substring(index + 1);
-	        }
-	      }
-	    //dfs
-	    while (!coords.isEmpty()) {
-	    	int currentPosition = coords.pop();
-	    	int size = sizes.pop();
-	    	int hour = hours.pop();
-	    	
-	    	int r = currentPosition/1000;
-	        int c = currentPosition%1000;
-	        ArrayList<Integer> newPositions = new ArrayList<Integer>();
-	        //add to visited list
-	        visited.add(currentPosition);
-	        
-	        //checking borders
-	        int currR = r - size;
-	        int currC = c;
-	        while (currC <= c + size) {
-	          if (farm[currR][currC].equals("#")) {
-	            flag = true; break;
-	          }
-	          else if (!farm[currR][currC].equals("X")) {
-	            newPositions.add(currR*1000 + currC);
-	          }
-	          currC++; currR++;
-	        }
-	      //break if the robot hit rock
-	        if (flag) {
-	        	flag = false;
-	        	continue;
-	        }
-	        currC-=2;
-	        
-	        while (currC >= c) {
-	          if (farm[currR][currC].equals("#")) {
-	            flag = true; break;
-	          }
-	          else if (!farm[currR][currC].equals("X")) {
-	            newPositions.add(currR*1000 + currC);
-	          }
-	          currC--; currR++;
-	        }
-	      //break if the robot hit rock
-	        if (flag) {
-	        	flag = false;
-	        	continue;
-	        }
-	        currR-=2;
-	        while (currC >= c - size) {
-	          if (farm[currR][currC].equals("#")) {
-	            flag = true; break;
-	          }
-	          else if (!farm[currR][currC].equals("X")) {
-	            newPositions.add(currR*1000 + currC);
-	          }
-	          currC--; currR--;
-	        }
-	      //break if the robot hit rock
-	        if (flag) {
-	        	flag = false;
-	        	continue;
-	        }
-	        currC+=2;
-	        
-	        while (currC < c) {
-	          if (farm[currR][currC].equals("#")) {
-	            flag = true; break;
-	          }
-	          else if (!farm[currR][currC].equals("X")) {
-	            newPositions.add(currR*1000 + currC);
-	          }
-	          currC++; currR--;
-	        }
-	        //break if the robot hit rock
-	        if (flag) {
-	        	flag = false;
-	        	continue;
-	        }
-	        //update count and change visited positions to "X"	
-	        count += newPositions.size();
-	        for (int each: newPositions) {
-	        	int newR = each/1000; int newC = each%1000;
-	        	farm[newR][newC] = "X";
-	        }
-	        //replicating
-	        if (hour == D) {
-	        	coords.add(currentPosition);
-	        	sizes.add(size + 1);
-	        	hours.add(0);
-	        }
-	        //moving
-	        else {
-	        	if (!visited.contains(currentPosition+1000) && !farm[r+1][c].equals("#")) {coords.add(currentPosition+1000); sizes.add(size); hours.add(hour+1);}
-	        	if (!visited.contains(currentPosition-1000) && !farm[r-1][c].equals("#")) {coords.add(currentPosition-1000); sizes.add(size); hours.add(hour+1);}
-	        	if (!visited.contains((r)*1000 + c+1) && !farm[r][c+1].equals("#")) {coords.add(currentPosition+1); sizes.add(size); hours.add(hour+1);}
-	        	if (!visited.contains((r)*1000 + c-1) && !farm[r][c-1].equals("#")) {coords.add(currentPosition-1); sizes.add(size); hours.add(hour+1);}
-	        }
-	    }
-	    
-	    System.out.println(count);
+		//Reading the input
+		in.nextLine();
+		for (int i = 0; i < n; i++) {
+			String line = in.nextLine();
+			for (int j = 0; j < n; j++) {
+				//rocks
+				if(line.charAt(j) =='#'){
+					empty[i][j] = false;
+					rocks.add(1000*i + j);
+				}
+				//not rocks
+				else {
+					empty[i][j] = true;
+				}
+				//starting points
+				if (line.charAt(j) == 'S') {
+					starts.add(1000*i + j);
+				}
+				//for all points
+				dist_rock[i][j] = -1;
+				dist_source[i][j] = -1;
+				ans[i][j] = false;
+			}
+		}
+		// First, we calculate distance of everything to a rock
+		Queue<Integer> bfs = new LinkedList<Integer>();
+		while (!rocks.isEmpty()) {
+			int rock = rocks.remove();
+			bfs.add(rock);
+			dist_rock[rock/1000][rock%1000] = 0;
+		}
+		while(!bfs.isEmpty()) {
+			int now = bfs.remove();
+			for (int j = 0; j < 4; j++) {
+				int toR = now/1000 + dr[j];
+				int toC = now%1000 + dc[j];
+				//check boundaries
+				if (!(toR >= 0 && toR < n && toC >= 0 && toC < n)) {
+					continue;
+				}
+				//check that the point is not already visited
+				if (dist_rock[toR][toC] != -1) {
+					continue;
+				}
+				dist_rock[toR][toC] = dist_rock[now/1000][now%1000] + 1;
+				bfs.add(1000*toR + toC);
+			}
+		}
+		//DEBUG: printing the dist_rock
+//		for (int j = 0; j < dist_rock.length; j++) {
+//			System.out.println(Arrays.toString(dist_rock[j]));
+//		}
 		
+		// Then, we do a BFS from the sources
+		while (!starts.isEmpty()) {
+			int start = starts.remove();
+			bfs.add(start);
+			dist_source[start/1000][start%1000] = 0;
+		}
+		// centers[i] will store all empty cells who are distance i+1 from a rock
+		// (meaning they can replicate i times)
+		ArrayList<Integer>[] centers = new ArrayList[n*n];
+		for (int i = 0; i < centers.length; i++) {
+			centers[i] = new ArrayList<Integer>();
+		}
+		while (!bfs.isEmpty()) {
+			int now = bfs.remove();
+			int nowR = now/1000; int nowC = now%1000;
+			ans[nowR][nowC] = true;
+			int now_dist = dist_source[nowR][nowC];
+			centers[dist_rock[nowR][nowC]-1].add(now);
+			//Do not continue if replicating would force robots to rocks
+			if (now_dist >= d*dist_rock[nowR][nowC]) {
+				continue;
+			}
+			for (int j = 0; j < 4; j++) {
+				int toR = now/1000 + dr[j];
+				int toC = now%1000 + dc[j];
+				//check boundaries
+				if (!(toR >= 0 && toR < n && toC >= 0 && toC < n)) {
+					continue;
+				}
+				//check that the point is not already visited
+				if (dist_source[toR][toC] != -1) {
+					continue;
+				}
+				//check that the point is not a rock
+				if (!empty[toR][toC]) {
+					continue;
+				}
+				//Do not continue if moving would force robots to rocks
+				if ((now_dist + 1) > d*dist_rock[toR][toC]) {
+					continue;
+				}
+				dist_source[toR][toC] = now_dist + 1;
+				bfs.add(1000*toR+toC);
+			}
+		}
+		//DEBUG: PRINT OUT centers
+//		for(int j = 0; j < centers.length; j++) {
+//			System.out.println(centers[j]);
+//		}
+		
+		// Do a modified BFS such that we reach every cell where
+		// there is some other cell in centers[z] and the distance
+		// between the two is <=z
+		Queue<Integer> next_stage = new LinkedList<Integer>();
+		//TODO: change the iterator i to start as n*n-1
+		for (int i = 2; i >=0; i--) {
+			//swap bfs and next_stage
+			while(!next_stage.isEmpty()) {
+				bfs.add(next_stage.remove());
+			}
+			while(!bfs.isEmpty()) {
+				int now = bfs.remove();
+				for (int j = 0; j < 4; j++) {
+					int toR = now/1000 + dr[j];
+					int toC = now%1000 + dc[j];
+					//check boundaries
+					if (!(toR >= 0 && toR < n && toC >= 0 && toC < n)) {
+						continue;
+					}
+					//check that the point is not already visited
+					if (ans[toR][toC]) {
+						continue;
+					}
+					//check that the point is not a rock
+					if (!empty[toR][toC]) {
+						continue;
+					}
+					ans[toR][toC] = true;
+					next_stage.add(1000*toR+toC);
+				}
+			}
+			for (int each: centers[i]) {
+				next_stage.add(each);
+			}
+		}
+		//DEBUG: print ans
+		int total = 0;
+		for (int i = 0; i < n; i++) {
+//			System.out.println(Arrays.toString(ans[i]));
+			for (int j = 0; j < n; j++) {
+				if (ans[i][j]) {
+					total++;
+				}
+			}
+		}
+		System.out.println(total);
 	}
-
 }
