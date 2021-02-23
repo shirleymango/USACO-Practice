@@ -123,7 +123,7 @@ public class replication {
 		// between the two is <=z
 		Queue<Integer> next_stage = new LinkedList<Integer>();
 		//TODO: change the iterator i to start as n*n-1
-		for (int i = 2; i >=0; i--) {
+		for (int i = n*n-1; i >=0; i--) {
 			//swap bfs and next_stage
 			while(!next_stage.isEmpty()) {
 				bfs.add(next_stage.remove());
