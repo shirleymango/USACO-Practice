@@ -5,7 +5,7 @@ public class replication {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
 		int n = in.nextInt();
-		int d = in.nextInt();
+		long d = in.nextInt();
 		int[] dr = new int[] {-1, 1, 0, 0};
 		int[] dc = new int[] {0, 0, -1, 1};
 		boolean[][] empty = new boolean[n][n];
@@ -64,6 +64,7 @@ public class replication {
 			}
 		}
 		//DEBUG: printing the dist_rock
+//		System.out.println("Distance from nearest rock");
 //		for (int j = 0; j < dist_rock.length; j++) {
 //			System.out.println(Arrays.toString(dist_rock[j]));
 //		}
@@ -76,7 +77,7 @@ public class replication {
 		}
 		// centers[i] will store all empty cells who are distance i+1 from a rock
 		// (meaning they can replicate i times)
-		ArrayList<Integer>[] centers = new ArrayList[n*n];
+		ArrayList<Integer>[] centers = new ArrayList[n/2];
 		for (int i = 0; i < centers.length; i++) {
 			centers[i] = new ArrayList<Integer>();
 		}
@@ -113,7 +114,8 @@ public class replication {
 				bfs.add(1000*toR+toC);
 			}
 		}
-		//DEBUG: PRINT OUT centers
+//		DEBUG: PRINT OUT centers
+//		System.out.println("Centers and maximum size of swarm at centers");
 //		for(int j = 0; j < centers.length; j++) {
 //			System.out.println(centers[j]);
 //		}
@@ -122,8 +124,7 @@ public class replication {
 		// there is some other cell in centers[z] and the distance
 		// between the two is <=z
 		Queue<Integer> next_stage = new LinkedList<Integer>();
-		//TODO: change the iterator i to start as n*n-1
-		for (int i = n*n-1; i >=0; i--) {
+		for (int i = n/2-1; i >=0; i--) {
 			//swap bfs and next_stage
 			while(!next_stage.isEmpty()) {
 				bfs.add(next_stage.remove());
@@ -153,7 +154,6 @@ public class replication {
 				next_stage.add(each);
 			}
 		}
-		//DEBUG: print ans
 		int total = 0;
 		for (int i = 0; i < n; i++) {
 //			System.out.println(Arrays.toString(ans[i]));
