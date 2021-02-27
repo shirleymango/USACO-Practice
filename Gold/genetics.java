@@ -3,80 +3,55 @@ import java.util.*;
 public class genetics {
 
 	public static void main(String[] args) {
+		final long mod = 1000000007;
+		final char[] bases = new char[] {'A', 'G', 'C', 'T'};
 		Scanner in = new Scanner(System.in);
-		String s = in.next();
-		int l = s.length();
-		long count = 0;
-		String[] letters  = new String[] {"A", "G", "T", "U"};
-		String[] possibleGenomes = new String[(int) Math.pow(4, l)];
-		for(int i = 0; i < possibleGenomes.length; i++) {
-			possibleGenomes[i] = "";
-		}
+		char[] s = in.next().toCharArray();
+		long[][][][] dp = new long[s.length][4][4][4];
 		
-		//find all possible genomes
-		for (int i = 1; i <= l; i++) {
-			int p1 = (int) (Math.pow(4, i-1));
-			int p2 = (int) (Math.pow(4, l-i));
-			int index = 0;
-			for (int j = 0; j < p1; j++) {
-				for (int k = 0; k < 4; k++) {
-					for (int n = 0; n < p2; n++) {
-						possibleGenomes[index] += letters[k];
-						index++;
+		//First letter of given genome
+		for (int n = 0; n < 4; n++) {
+			for (int l = 0; l < 4; l++) {
+				if (s[0] == '?' || s[0] == bases[l]) {
+					dp[0][n][l][l] = 1L;
+				}
+			}
+		}
+		//Dynamic Programming 
+		for (int k = 1; k < s.length; k++) {
+			for (int m2 = 0; m2 < 4; m2++) {
+				if (s[k] == '?' || s[k] == bases[m2]) {
+					for (int n = 0; n < 4; n++) {
+						for (int l = 0; l < 4; l++) {
+							for (int m = 0; m < 4; m++) {
+								//Extending last substring to include m2
+								if (m != m2) {
+									dp[k][n][l][m2] += dp[k-1][n][l][m];
+									dp[k][n][l][m2] %= mod;
+								}
+								//Adding new substring of m2
+								if (n == m) {
+									dp[k][l][m2][m2] += dp[k-1][n][l][m];
+									dp[k][l][m2][m2] %= mod;
+								}
+							}
+						}
 					}
 				}
 			}
 		}
 		
-		for (int m = 0; m < possibleGenomes.length; m++) {
-			String possibleStart = possibleGenomes[m]; //possible start genome
-			//split at consecutive points
-			ArrayList<String> divisions = new ArrayList<String>();
-			int startIndex = 0;
-			for (int i = 0; i < l - 1; i++) {
-				if (possibleStart.charAt(i) == possibleStart.charAt(i+1)) {
-					//split
-					divisions.add(possibleStart.substring(startIndex, i+1));
-					startIndex = i+1;
-				}
-			}
-			divisions.add(possibleStart.substring(startIndex));
-			
-			//reverse
-			ArrayList<String> reversed = new ArrayList<String>();
-			for (int i = 0; i < divisions.size(); i++) {
-				String curr = divisions.get(i);
-				String r = "";
-				for (int j = 0; j < curr.length(); j++) {
-					r = curr.charAt(j) + r;
-				}
-				reversed.add(r);
-			}
-			
-			//concatenate new
-			String end = "";
-			for (String str: reversed) {
-				end += str;
-			}
-			
-			//check if valid
-			boolean valid = true;
-			for (int i = 0; i < l; i++) {
-				if (s.charAt(i) != '?' && end.charAt(i) != s.charAt(i)) {
-					valid = false;
-					break;
-				}
-			}
-			if (valid) {
-				count++;
-			}
-			
-			if (count > 1000000007) {
-				count = count % 1000000007;
+		//Summing up total answer
+		long count = 0; 
+		for (int l = 0; l < 4; l++) {
+			for (int m = 0; m < 4; m++) {
+				//first letter of second to last substring must equal to last letter of last substring
+				count += dp[s.length - 1][m][l][m];
 			}
 		}
-		
+		count %= mod;
 		System.out.println(count);
+
 	}
 
 }
